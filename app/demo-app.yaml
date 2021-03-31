@@ -1,0 +1,53 @@
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: demoapp-sample
+  namespace: demoapp-sub-sample
+  labels:
+    app: nginxsamp
+spec:
+  componentKinds:
+    - group: app.ibm.com
+      kind: Subscription
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - nginxsamp
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Subscription
+metadata:
+  name: subscription-demoapp-sample
+  namespace: demoapp-sub-sample
+  labels:
+    app: nginxsamp
+spec:
+  channel: demoapp-ns-sample/channel-demoapp-sample
+  placement:
+    placementRef:
+      name: placementrule-demoapp-sample
+      kind: PlacementRule
+  overrides:
+  - clusterName: "iks11"
+    clusterOverrides: 
+    - path: "metadata.namespace"
+      value: "demo11"
+  - clusterName: "iks22"
+    clusterOverrides: 
+    - path: "metadata.namespace"
+      value: "demo22"
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: placementrule-demoapp-sample
+  namespace: demoapp-sub-sample
+  labels:
+    app: nginxsamp
+spec:
+  clusterLabels:
+    matchLabels:
+      environment: Dev
+  clusterReplicas: 1

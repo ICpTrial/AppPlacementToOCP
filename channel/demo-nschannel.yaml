@@ -1,0 +1,12 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Channel
+metadata:
+  name: channel-demoapp-sample
+  namespace: demoapp-ns-sample
+  labels:
+    app: openliberty
+spec:
+  type: Namespace
+  sourceNamespaces:
+    - demoapp-ns-sample
+  pathname: demoapp-ns-sample 

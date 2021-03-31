@@ -1,0 +1,121 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  annotations:
+  name: nginxsamp-deployable
+  namespace: demoapp-ns-sample 
+  labels:
+    app: nginxsamp
+spec:
+  template:  
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: nginxsamp
+      name: nginxsamp
+      namespace: demoapp-ns-sample
+    spec:
+      selector:
+        matchLabels:
+          app: nginxsamp
+      template:
+        metadata:
+          labels:
+            app: nginxsamp
+        spec:
+          containers:
+          - image: nginx:1.14.2
+            name: nginxsamp-pod
+            ports:
+            - containerPort: 80
+              protocol: TCP
+          serviceAccountName: nginxsa
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: nginxsamp-deployable-service
+  namespace: demoapp-ns-sample
+  labels:
+    app: nginxsamp
+spec:
+  template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: nginxsamp
+      name: nginxsamp-service
+      namespace: demoapp-ns-sample
+    spec:
+      ports:
+      - name: nginxsamp-http-port
+        port: 80
+        protocol: TCP
+        targetPort: 80
+      selector:
+        app: nginxsamp
+      type: ClusterIP
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: nginxsamp-deployable-route
+  namespace: demoapp-ns-sample
+  labels:
+    app: nginxsamp
+spec:
+  template:
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: nginxsamp
+      name: nginxsamp
+      namespace: demoapp-ns-sample
+    spec:
+      port:
+        targetPort: nginxsamp-http-port
+      to:
+        kind: Service
+        name: nginxsamp-service
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: nginxsamp-deployable-sa
+  namespace: demoapp-ns-sample
+  labels:
+    app: nginxsamp
+spec:
+  template:
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: nginxsamp
+      name: nginxsa
+      namespace: demoapp-ns-sample
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: nginxsamp-deployable-rolebinding
+  namespace: demoapp-ns-sample
+  labels:
+    app: nginxsamp
+spec:
+  template:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: system:openshift:scc:anyuid
+      namespace: demoapp-ns-sample
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: system:openshift:scc:anyuid
+    subjects:
+    - kind: ServiceAccount
+      name: nginxsa

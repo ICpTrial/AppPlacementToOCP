@@ -1,0 +1,81 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  annotations:
+  name: openliberty-deployable
+  namespace: demoapp-ns-sample 
+  labels:
+    app: openliberty
+spec:
+  template:  
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: openliberty
+      name: openliberty
+      namespace: demoapp-ns-sample
+    spec:
+      selector:
+        matchLabels:
+          app: openliberty
+      template:
+        metadata:
+          labels:
+            app: openliberty
+        spec:
+          containers:
+          - image: docker.io/library/open-liberty:full
+            name: openliberty-pod
+            ports:
+            - containerPort: 9080
+              protocol: TCP
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: openliberty-deployable-service
+  namespace: demoapp-ns-sample
+  labels:
+    app: openliberty
+spec:
+  template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: openliberty
+      name: openliberty-service
+      namespace: demoapp-ns-sample
+    spec:
+      ports:
+      - name: openliberty-http-port
+        port: 9080
+        protocol: TCP
+        targetPort: 9080
+      selector:
+        app: openliberty
+      type: ClusterIP
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: openliberty-deployable-route
+  namespace: demoapp-ns-sample
+  labels:
+    app: openliberty
+spec:
+  template:
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: openliberty
+      name: openliberty
+      namespace: demoapp-ns-sample
+    spec:
+      port:
+        targetPort: openliberty-http-port
+      to:
+        kind: Service
+        name: openliberty-service
